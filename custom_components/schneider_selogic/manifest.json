@@ -1,0 +1,10 @@
+{
+  "domain": "schneider_selogic",
+  "name": "Schneider SELogic Power Meter",
+  "version": "1.0.0",
+  "config_flow": true,
+  "requirements": ["pymodbus>=3.6.0"],
+  "dependencies": [],
+  "codeowners": ["@magicbear"],
+  "iot_class": "local_polling"
+}
