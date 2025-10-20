@@ -7,7 +7,6 @@ from homeassistant.components.sensor import SensorEntity, SensorEntityDescriptio
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, CoordinatorEntity
 from pymodbus.client import AsyncModbusTcpClient
-from pymodbus.constants import Endian
 from .const import DOMAIN, CONF_HOST, CONF_PORT, CONF_SLAVE_ID, CONF_SCAN_INTERVAL
 
 _LOGGER = logging.getLogger(__name__)
@@ -127,57 +126,57 @@ class SELogicDataCoordinator(DataUpdateCoordinator):
                 raise Exception("Connection lost")
 
             if self.device_info['model'] is None:
-                result = await self.client.read_holding_registers(address=49, count=20, slave=self.slave_id)
+                result = await self.client.read_holding_registers(address=49, count=20, device_id=self.slave_id)
 
                 if result.isError():
                     self.logger.error("Status register read error: %s", result)
                     return None
 
-                self.device_info['model'] = self.client.convert_from_registers(result.registers, data_type=self.client.DATATYPE.STRING, word_order=Endian.BIG)
+                self.device_info['model'] = self.client.convert_from_registers(result.registers, data_type=self.client.DATATYPE.STRING, word_order="big")
 
-                result = await self.client.read_holding_registers(address=69, count=20, slave=self.slave_id)
+                result = await self.client.read_holding_registers(address=69, count=20, device_id=self.slave_id)
 
                 if result.isError():
                     self.logger.error("Status register read error: %s", result)
                     return None
 
-                self.device_info['manufacturer'] = self.client.convert_from_registers(result.registers, data_type=self.client.DATATYPE.STRING, word_order=Endian.BIG)
+                self.device_info['manufacturer'] = self.client.convert_from_registers(result.registers, data_type=self.client.DATATYPE.STRING, word_order="big")
 
             # 读取 Voltage
-            result = await self.client.read_holding_registers(address=3019, count=14, slave=self.slave_id)
+            result = await self.client.read_holding_registers(address=3019, count=14, device_id=self.slave_id)
 
             if result.isError():
                 self.logger.error("Status register read error: %s", result)
                 return None
 
-            voltages = self.client.convert_from_registers(result.registers, data_type=self.client.DATATYPE.FLOAT32, word_order=Endian.BIG)
+            voltages = self.client.convert_from_registers(result.registers, data_type=self.client.DATATYPE.FLOAT32, word_order="big")
 
             # 读取Current
-            result = await self.client.read_holding_registers(address=2999, count=8, slave=self.slave_id)
+            result = await self.client.read_holding_registers(address=2999, count=8, device_id=self.slave_id)
 
             if result.isError():
                 self.logger.error("Status register read error: %s", result)
                 return None
 
-            currents = self.client.convert_from_registers(result.registers, data_type=self.client.DATATYPE.FLOAT32, word_order=Endian.BIG)
+            currents = self.client.convert_from_registers(result.registers, data_type=self.client.DATATYPE.FLOAT32, word_order="big")
 
             # 读取Current
-            result = await self.client.read_holding_registers(address=3077, count=8, slave=self.slave_id)
+            result = await self.client.read_holding_registers(address=3077, count=8, device_id=self.slave_id)
 
             if result.isError():
                 self.logger.error("Status register read error: %s", result)
                 return None
 
-            powerfactor = self.client.convert_from_registers(result.registers, data_type=self.client.DATATYPE.FLOAT32, word_order=Endian.BIG)
+            powerfactor = self.client.convert_from_registers(result.registers, data_type=self.client.DATATYPE.FLOAT32, word_order="big")
 
             # 读取Current
-            result = await self.client.read_holding_registers(address=3109, count=2, slave=self.slave_id)
+            result = await self.client.read_holding_registers(address=3109, count=2, device_id=self.slave_id)
 
             if result.isError():
                 self.logger.error("Status register read error: %s", result)
                 return None
 
-            freq = self.client.convert_from_registers(result.registers, data_type=self.client.DATATYPE.FLOAT32, word_order=Endian.BIG)
+            freq = self.client.convert_from_registers(result.registers, data_type=self.client.DATATYPE.FLOAT32, word_order="big")
 
             # 构造完整数据集
             self.data = {
