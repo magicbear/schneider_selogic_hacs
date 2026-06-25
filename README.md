@@ -117,8 +117,8 @@ Check IP, port, slave ID, firewall rules, and that Modbus/TCP is enabled on the 
 
 ### Links
 
-- [Documentation](https://github.com/magicbear/schneider_selogic)
-- [Issue tracker](https://github.com/magicbear/schneider_selogic/issues)
+- [Documentation](https://github.com/magicbear/schneider_selogic_hacs)
+- [Issue tracker](https://github.com/magicbear/schneider_selogic_hacs/issues)
 
 ---
 
@@ -189,5 +189,5 @@ Check IP, port, slave ID, firewall rules, and that Modbus/TCP is enabled on the 
 
 ### 链接
 
-- [文档](https://github.com/magicbear/schneider_selogic)
-- [问题反馈](https://github.com/magicbear/schneider_selogic/issues)
+- [文档](https://github.com/magicbear/schneider_selogic_hacs)
+- [问题反馈](https://github.com/magicbear/schneider_selogic_hacs/issues)
