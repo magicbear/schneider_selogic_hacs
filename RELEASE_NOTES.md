@@ -68,7 +68,7 @@ Each sensor includes a `default_enabled` flag in `SENSOR_TYPES` for customizing 
 
 #### Installation
 
-**HACS:** Add custom repository `https://github.com/magicbear/schneider_selogic_hacs` (category: Integration), install, restart, then add the integration via **Settings → Devices & services**.
+**HACS:** Add custom repository `https://github.com/magicbear/schneider_selogic` (category: Integration), install, restart, then add the integration via **Settings → Devices & services**.
 
 **Manual:** Copy `custom_components/schneider_selogic` to `config/custom_components/` and restart.
 
@@ -85,7 +85,7 @@ Each sensor includes a `default_enabled` flag in `SENSOR_TYPES` for customizing 
 
 #### Links
 
-- Repository: https://github.com/magicbear/schneider_selogic_hacs
+- Repository: https://github.com/magicbear/schneider_selogic
 - Documentation: https://github.com/magicbear/schneider_selogic
 - Issues: https://github.com/magicbear/schneider_selogic/issues
 
@@ -141,7 +141,7 @@ Each sensor includes a `default_enabled` flag in `SENSOR_TYPES` for customizing 
 
 #### 安装
 
-**HACS：** 添加自定义仓库 `https://github.com/magicbear/schneider_selogic_hacs`（类别：集成），安装并重启后，在 **设置 → 设备与服务** 中添加集成。
+**HACS：** 添加自定义仓库 `https://github.com/magicbear/schneider_selogic`（类别：集成），安装并重启后，在 **设置 → 设备与服务** 中添加集成。
 
 **手动：** 将 `custom_components/schneider_selogic` 复制到 `config/custom_components/` 并重启。
 
@@ -158,6 +158,6 @@ Each sensor includes a `default_enabled` flag in `SENSOR_TYPES` for customizing 
 
 #### 链接
 
-- 仓库：https://github.com/magicbear/schneider_selogic_hacs
+- 仓库：https://github.com/magicbear/schneider_selogic
 - 文档：https://github.com/magicbear/schneider_selogic
 - 反馈：https://github.com/magicbear/schneider_selogic/issues

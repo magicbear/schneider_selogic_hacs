@@ -22,8 +22,8 @@ EM6400 NG · PM2120 · PM2130 · PM2220 · PM2230
 
 ### Install (HACS)
 
-1. Add custom repo: `https://github.com/magicbear/schneider_selogic_hacs` (Integration)
+1. Add custom repo: `https://github.com/magicbear/schneider_selogic` (Integration)
 2. Install **Schneider SELogic** and restart HA
 3. Add integration via **Settings → Devices & services**
 
-Full release notes: [RELEASE_NOTES.md](https://github.com/magicbear/schneider_selogic_hacs/blob/v1.0.0/RELEASE_NOTES.md)
+Full release notes: [RELEASE_NOTES.md](https://github.com/magicbear/schneider_selogic/blob/v1.0.0/RELEASE_NOTES.md)

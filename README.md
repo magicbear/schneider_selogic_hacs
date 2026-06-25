@@ -1,7 +1,7 @@
 # Schneider SELogic Integration for Home Assistant
 
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://github.com/hacs/integration)
-![GitHub License](https://img.shields.io/github/license/magicbear/schneider_selogic_hacs)
+![GitHub License](https://img.shields.io/github/license/magicbear/schneider_selogic)
 
 Home Assistant custom integration for Schneider Electric SELogic / PM2xxx series power meters over **Modbus/TCP**.
 
@@ -39,7 +39,7 @@ Register addresses are based on *Public_EM6400_PM2xxx PMC Register List* (Modbus
 #### HACS (recommended)
 
 1. Open **HACS → Integrations → ⋮ → Custom repositories**
-2. Add repository: `https://github.com/magicbear/schneider_selogic_hacs`
+2. Add repository: `https://github.com/magicbear/schneider_selogic`
 3. Category: **Integration**
 4. Install **Schneider SELogic**, restart Home Assistant
 5. Go to **Settings → Devices & services → Add integration** and search for **Schneider SELogic**
@@ -117,8 +117,8 @@ Check IP, port, slave ID, firewall rules, and that Modbus/TCP is enabled on the 
 
 ### Links
 
-- [Documentation](https://github.com/magicbear/schneider_selogic_hacs)
-- [Issue tracker](https://github.com/magicbear/schneider_selogic_hacs/issues)
+- [Documentation](https://github.com/magicbear/schneider_selogic)
+- [Issue tracker](https://github.com/magicbear/schneider_selogic/issues)
 
 ---
 
@@ -150,7 +150,7 @@ Check IP, port, slave ID, firewall rules, and that Modbus/TCP is enabled on the 
 ### 安装步骤（HACS）
 
 1. 进入 **HACS → 集成 → 右上角 ⋮ → 自定义仓库**
-2. 仓库地址：`https://github.com/magicbear/schneider_selogic_hacs`
+2. 仓库地址：`https://github.com/magicbear/schneider_selogic`
 3. 类别选择：**集成**
 4. 安装 **Schneider SELogic** 并重启 Home Assistant
 5. 进入 **设置 → 设备与服务 → 添加集成**，搜索 **Schneider SELogic**
@@ -189,5 +189,5 @@ Check IP, port, slave ID, firewall rules, and that Modbus/TCP is enabled on the 
 
 ### 链接
 
-- [文档](https://github.com/magicbear/schneider_selogic_hacs)
-- [问题反馈](https://github.com/magicbear/schneider_selogic_hacs/issues)
+- [文档](https://github.com/magicbear/schneider_selogic)
+- [问题反馈](https://github.com/magicbear/schneider_selogic/issues)
