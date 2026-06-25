@@ -1,5 +1,14 @@
 # Release Notes
 
+## v1.0.1 — 2026-06-25
+
+Maintenance release after repository rename. No functional changes.
+
+- Repository renamed from `schneider_selogic_hacs` to `schneider_selogic` (HACS naming policy)
+- Updated documentation and issue tracker URLs in `manifest.json`
+
+---
+
 ## v1.0.0 — 2026-06-25
 
 First stable release of the Schneider SELogic Home Assistant integration.
