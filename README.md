@@ -1,7 +1,7 @@
 # Schneider SELogic Integration for Home Assistant
 
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://github.com/hacs/integration)
-![GitHub License](https://img.shields.io/github/license/magicbear/schneider_selogic)
+![GitHub License](https://img.shields.io/github/license/magicbear/schneider_selogic_hacs)
 
 Home Assistant custom integration for Schneider Electric SELogic / PM2xxx series power meters over **Modbus/TCP**.
 
