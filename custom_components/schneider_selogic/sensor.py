@@ -3,66 +3,60 @@ import logging
 from datetime import timedelta
 
 from homeassistant.core import callback
-from homeassistant.components.sensor import SensorEntity, SensorEntityDescription, SensorDeviceClass
+from homeassistant.components.sensor import SensorEntity, SensorEntityDescription
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, CoordinatorEntity
 from pymodbus.client import AsyncModbusTcpClient
-from .const import DOMAIN, CONF_HOST, CONF_PORT, CONF_SLAVE_ID, CONF_SCAN_INTERVAL
+from .const import (
+    BLOCK_SENSOR_KEYS,
+    CONF_HOST,
+    CONF_PORT,
+    CONF_SCAN_INTERVAL,
+    CONF_SENSORS,
+    CONF_SLAVE_ID,
+    DEFAULT_SENSORS,
+    DOMAIN,
+    POWER_FACTOR_SENSOR_KEYS,
+    REGISTER_BLOCKS,
+    SENSOR_BLOCK_INDEX,
+    SENSOR_TYPES,
+)
 
 _LOGGER = logging.getLogger(__name__)
-
-SENSOR_TYPES = [
-    ("Voltage A", "Ua", "V", SensorDeviceClass.VOLTAGE),
-    ("Voltage B", "Ub", "V", SensorDeviceClass.VOLTAGE),
-    ("Voltage C", "Uc", "V", SensorDeviceClass.VOLTAGE),
-    ("Voltage AB", "Uab", "V", SensorDeviceClass.VOLTAGE),
-    ("Voltage BC", "Ubc", "V", SensorDeviceClass.VOLTAGE),
-    ("Voltage CA", "Uca", "V", SensorDeviceClass.VOLTAGE),
-    ("Current A", "Ia", "A", SensorDeviceClass.CURRENT),
-    ("Current B", "Ib", "A", SensorDeviceClass.CURRENT),
-    ("Current C", "Ic", "A", SensorDeviceClass.CURRENT),
-    ("Current N", "In", "A", SensorDeviceClass.CURRENT),
-    ("Power Factor A", "PFa", "%", SensorDeviceClass.POWER_FACTOR),
-    ("Power Factor B", "PFb", "%", SensorDeviceClass.POWER_FACTOR),
-    ("Power Factor C", "PFc", "%", SensorDeviceClass.POWER_FACTOR),
-    ("Power Factor Avg", "PF", "%", SensorDeviceClass.POWER_FACTOR),
-    ("Frequency", "Freq", "Hz", SensorDeviceClass.FREQUENCY),
-
-]
 
 
 async def async_setup_entry(hass, config_entry, async_add_entities):
     coordinator = SELogicDataCoordinator(hass, config_entry)
 
-    # 确保协调器已初始化
     await coordinator.async_config_entry_first_refresh()
 
-    # 确保update_interval类型正确
     if not isinstance(coordinator.update_interval, timedelta):
         raise ValueError("Invalid update interval type")
 
-    sensors = []
-    for name, key, unit, device_class in SENSOR_TYPES:
-        sensors.append(
-            SELogicSensor(coordinator, name, key, unit, device_class)
-        )
+    enabled_sensors = set(config_entry.data.get(CONF_SENSORS, DEFAULT_SENSORS))
+    sensors = [
+        SELogicSensor(coordinator, name, key, unit, device_class, state_class)
+        for name, key, unit, device_class, state_class, _default_enabled in SENSOR_TYPES
+        if key in enabled_sensors
+    ]
 
     async_add_entities(sensors)
 
 
 class SELogicSensor(CoordinatorEntity, SensorEntity):
-    def __init__(self, coordinator, name, key, unit, device_class):
-        super().__init__(coordinator, key)
-        self._attr_device_info = coordinator.device_info
-        self._attr_translation_key = key
+    def __init__(self, coordinator, name, key, unit, device_class, state_class):
         self.entity_description = SensorEntityDescription(
             key=key,
-            name=name,
+            translation_key=key.lower(),
+            name=None,
             device_class=device_class,
             native_unit_of_measurement=unit,
             has_entity_name=True,
-            suggested_display_precision=2
+            suggested_display_precision=2,
+            state_class=state_class,
         )
+        super().__init__(coordinator, key)
+        self._attr_device_info = coordinator.device_info
 
     @callback
     def _handle_coordinator_update(self) -> None:
@@ -92,115 +86,135 @@ class SELogicDataCoordinator(DataUpdateCoordinator):
         self.client = AsyncModbusTcpClient(
             host=host,
             port=port,
-            timeout=10
+            timeout=10,
         )
         self.device_info = DeviceInfo(
             identifiers={(DOMAIN, config_entry.entry_id)},
-            name= "SELogic Power Meter",
+            name="SELogic Power Meter",
             manufacturer=None,
-            model=None
+            model=None,
         )
         self.slave_id = slave_id
+        self.enabled_sensors = set(config_entry.data.get(CONF_SENSORS, DEFAULT_SENSORS))
         self.data = {}
 
     def convert_pf(self, pf_register):
         if 0 <= pf_register <= 1:
             return pf_register
-        elif -2 <= pf_register <= -1:
+        if -2 <= pf_register <= -1:
             return -2 - pf_register
-        elif -1 < pf_register <= 0:
+        if -1 < pf_register <= 0:
             return pf_register
-        elif 1 < pf_register < 2:
+        if 1 < pf_register < 2:
             return 2 - pf_register
-        else:
-            raise ValueError("PF register value out of expected range (-2 to 2)")
+        raise ValueError("PF register value out of expected range (-2 to 2)")
+
+    def _needs_block_read(self, block_name: str) -> bool:
+        block_keys = BLOCK_SENSOR_KEYS.get(block_name, frozenset())
+        return bool(self.enabled_sensors & block_keys)
+
+    async def _read_float32_block(self, block_name: str) -> list[float] | None:
+        block = REGISTER_BLOCKS[block_name]
+        result = await self.client.read_holding_registers(
+            address=block["address"],
+            count=block["count"],
+            device_id=self.slave_id,
+        )
+        if result.isError():
+            self.logger.error("Register read error (%s): %s", block_name, result)
+            return None
+
+        values = self.client.convert_from_registers(
+            result.registers,
+            data_type=self.client.DATATYPE.FLOAT32,
+            word_order="big",
+        )
+        if not isinstance(values, list):
+            return [values]
+        return values
+
+    def _value_from_block(self, sensor_key: str, values: list[float]) -> float:
+        _block_name, index = SENSOR_BLOCK_INDEX[sensor_key]
+        value = values[index]
+        if sensor_key in POWER_FACTOR_SENSOR_KEYS:
+            return self.convert_pf(value) * 100
+        return value
 
     async def _async_update_data(self):
         """异步获取所有数据"""
         try:
-            # 连接检查
             if not self.client.connected:
                 await self.client.connect()
 
             if not self.client.connected:
-                raise Exception("Connection lost")
+                raise ConnectionError("Connection lost")
 
-            if self.device_info['model'] is None:
+            if self.device_info["model"] is None:
                 result = await self.client.read_holding_registers(address=49, count=20, device_id=self.slave_id)
-
                 if result.isError():
                     self.logger.error("Status register read error: %s", result)
                     return None
 
-                self.device_info['model'] = self.client.convert_from_registers(result.registers, data_type=self.client.DATATYPE.STRING, word_order="big")
+                self.device_info["model"] = self.client.convert_from_registers(
+                    result.registers,
+                    data_type=self.client.DATATYPE.STRING,
+                    word_order="big",
+                )
 
                 result = await self.client.read_holding_registers(address=69, count=20, device_id=self.slave_id)
-
                 if result.isError():
                     self.logger.error("Status register read error: %s", result)
                     return None
 
-                self.device_info['manufacturer'] = self.client.convert_from_registers(result.registers, data_type=self.client.DATATYPE.STRING, word_order="big")
+                self.device_info["manufacturer"] = self.client.convert_from_registers(
+                    result.registers,
+                    data_type=self.client.DATATYPE.STRING,
+                    word_order="big",
+                )
 
-            # 读取 Voltage
-            result = await self.client.read_holding_registers(address=3019, count=14, device_id=self.slave_id)
+                result = await self.client.read_holding_registers(address=129, count=2, device_id=self.slave_id)
+                if result.isError():
+                    self.logger.error("Status register read error: %s", result)
+                    return None
 
-            if result.isError():
-                self.logger.error("Status register read error: %s", result)
-                return None
+                self.device_info["serial_number"] = self.client.convert_from_registers(
+                    result.registers,
+                    data_type=self.client.DATATYPE.UINT32,
+                    word_order="big",
+                )
 
-            voltages = self.client.convert_from_registers(result.registers, data_type=self.client.DATATYPE.FLOAT32, word_order="big")
+                result = await self.client.read_holding_registers(address=135, count=1, device_id=self.slave_id)
+                if result.isError():
+                    self.logger.error("Status register read error: %s", result)
+                    return None
 
-            # 读取Current
-            result = await self.client.read_holding_registers(address=2999, count=8, device_id=self.slave_id)
+                self.device_info["hw_version"] = self.client.convert_from_registers(
+                    result.registers,
+                    data_type=self.client.DATATYPE.UINT16,
+                    word_order="big",
+                )
 
-            if result.isError():
-                self.logger.error("Status register read error: %s", result)
-                return None
+            data = {}
+            block_values: dict[str, list[float]] = {}
 
-            currents = self.client.convert_from_registers(result.registers, data_type=self.client.DATATYPE.FLOAT32, word_order="big")
+            for block_name in REGISTER_BLOCKS:
+                if not self._needs_block_read(block_name):
+                    continue
+                values = await self._read_float32_block(block_name)
+                if values is None:
+                    return None
+                block_values[block_name] = values
 
-            # 读取Current
-            result = await self.client.read_holding_registers(address=3077, count=8, device_id=self.slave_id)
+            for sensor_key in self.enabled_sensors:
+                if sensor_key not in SENSOR_BLOCK_INDEX:
+                    continue
+                block_name, _index = SENSOR_BLOCK_INDEX[sensor_key]
+                data[sensor_key] = self._value_from_block(sensor_key, block_values[block_name])
 
-            if result.isError():
-                self.logger.error("Status register read error: %s", result)
-                return None
-
-            powerfactor = self.client.convert_from_registers(result.registers, data_type=self.client.DATATYPE.FLOAT32, word_order="big")
-
-            # 读取Current
-            result = await self.client.read_holding_registers(address=3109, count=2, device_id=self.slave_id)
-
-            if result.isError():
-                self.logger.error("Status register read error: %s", result)
-                return None
-
-            freq = self.client.convert_from_registers(result.registers, data_type=self.client.DATATYPE.FLOAT32, word_order="big")
-
-            # 构造完整数据集
-            self.data = {
-                'Ia': currents[0],
-                'Ib': currents[1],
-                'Ic': currents[2],
-                'In': currents[3],
-                'Uab': voltages[0],
-                'Ubc': voltages[1],
-                'Uca': voltages[2],
-                'Ua': voltages[4],
-                'Ub': voltages[5],
-                'Uc': voltages[6],
-                'PFa': self.convert_pf(powerfactor[0])*100,
-                'PFb': self.convert_pf(powerfactor[1])*100,
-                'PFc': self.convert_pf(powerfactor[2])*100,
-                'PF': self.convert_pf(powerfactor[3])*100,
-                'Freq': freq
-            }
-
+            self.data = data
             self.client.close()
             return self.data
         except Exception as e:
             self.logger.error("Update failed: %s", str(e))
             self.client.close()
             raise
-

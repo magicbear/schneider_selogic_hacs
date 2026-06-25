@@ -9,15 +9,61 @@
           "host": "IP",
           "port": "Port",
           "slave_id": "Slave ID",
-          "scan_interval": "Scan Interval"
+          "scan_interval": "Scan Interval",
+          "sensors": "Sensors"
         }
       }
     },
     "abort": {
       "already_in_progress": "Configuration is already in progress.",
-      "already_configured": "This device is already configured."
+      "already_configured": "This device is already configured.",
+      "reconfigure_successful": "Re-configuration was successful."
     },
     "error": {
+      "cannot_connect": "Unable to connect",
+      "modbus_error": "Modbus communication error",
+      "unknown": "Unknown error"
+    }
+  },
+  "entity": {
+    "sensor": {
+      "ua": { "name": "Voltage A" },
+      "ub": { "name": "Voltage B" },
+      "uc": { "name": "Voltage C" },
+      "uab": { "name": "Voltage AB" },
+      "ubc": { "name": "Voltage BC" },
+      "uca": { "name": "Voltage CA" },
+      "ia": { "name": "Current A" },
+      "ib": { "name": "Current B" },
+      "ic": { "name": "Current C" },
+      "in": { "name": "Current N" },
+      "pa": { "name": "Active Power A" },
+      "pb": { "name": "Active Power B" },
+      "pc": { "name": "Active Power C" },
+      "p": { "name": "Active Power Total" },
+      "qa": { "name": "Reactive Power A" },
+      "qb": { "name": "Reactive Power B" },
+      "qc": { "name": "Reactive Power C" },
+      "q": { "name": "Reactive Power Total" },
+      "sa": { "name": "Apparent Power A" },
+      "sb": { "name": "Apparent Power B" },
+      "sc": { "name": "Apparent Power C" },
+      "s": { "name": "Apparent Power Total" },
+      "pfa": { "name": "Power Factor A" },
+      "pfb": { "name": "Power Factor B" },
+      "pfc": { "name": "Power Factor C" },
+      "pf": { "name": "Power Factor Avg" },
+      "freq": { "name": "Frequency" },
+      "e_in": { "name": "Active Energy Delivered" },
+      "e_out": { "name": "Active Energy Received" },
+      "e_sum": { "name": "Active Energy Total" },
+      "e_net": { "name": "Active Energy Net" },
+      "e_var_sum": { "name": "Reactive Energy Total" },
+      "e_va_sum": { "name": "Apparent Energy Total" },
+      "d_p": { "name": "Present Demand" },
+      "d_p_peak": { "name": "Peak Demand" },
+      "d_q": { "name": "Present Reactive Demand" },
+      "d_s": { "name": "Present Apparent Demand" }
     }
   }
 }

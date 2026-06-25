@@ -1,0 +1,69 @@
+{
+  "config": {
+    "flow_title": "{name}",
+    "step": {
+      "user": {
+        "title": "施耐德 SELogic 电能表配置",
+        "description": "请输入施耐德 SELogic 电能表 Modbus/TCP IP 地址",
+        "data": {
+          "host": "IP 地址",
+          "port": "端口",
+          "slave_id": "从站地址",
+          "scan_interval": "扫描间隔（秒）",
+          "sensors": "传感器"
+        }
+      }
+    },
+    "abort": {
+      "already_in_progress": "配置正在进行中。",
+      "already_configured": "该设备已配置。",
+      "reconfigure_successful": "重新配置成功。"
+    },
+    "error": {
+      "cannot_connect": "无法连接",
+      "modbus_error": "Modbus 通信错误",
+      "unknown": "未知错误"
+    }
+  },
+  "entity": {
+    "sensor": {
+      "ua": { "name": "A 相电压" },
+      "ub": { "name": "B 相电压" },
+      "uc": { "name": "C 相电压" },
+      "uab": { "name": "AB 线电压" },
+      "ubc": { "name": "BC 线电压" },
+      "uca": { "name": "CA 线电压" },
+      "ia": { "name": "A 相电流" },
+      "ib": { "name": "B 相电流" },
+      "ic": { "name": "C 相电流" },
+      "in": { "name": "N 线电流" },
+      "pa": { "name": "A 相有功功率" },
+      "pb": { "name": "B 相有功功率" },
+      "pc": { "name": "C 相有功功率" },
+      "p": { "name": "总有功功率" },
+      "qa": { "name": "A 相无功功率" },
+      "qb": { "name": "B 相无功功率" },
+      "qc": { "name": "C 相无功功率" },
+      "q": { "name": "总无功功率" },
+      "sa": { "name": "A 相视在功率" },
+      "sb": { "name": "B 相视在功率" },
+      "sc": { "name": "C 相视在功率" },
+      "s": { "name": "总视在功率" },
+      "pfa": { "name": "A 相功率因数" },
+      "pfb": { "name": "B 相功率因数" },
+      "pfc": { "name": "C 相功率因数" },
+      "pf": { "name": "平均功率因数" },
+      "freq": { "name": "频率" },
+      "e_in": { "name": "正向有功电能" },
+      "e_out": { "name": "反向有功电能" },
+      "e_sum": { "name": "有功电能合计" },
+      "e_net": { "name": "有功电能净值" },
+      "e_var_sum": { "name": "无功电能合计" },
+      "e_va_sum": { "name": "视在电能合计" },
+      "d_p": { "name": "当前有功需量" },
+      "d_p_peak": { "name": "峰值有功需量" },
+      "d_q": { "name": "当前无功需量" },
+      "d_s": { "name": "当前视在需量" }
+    }
+  }
+}

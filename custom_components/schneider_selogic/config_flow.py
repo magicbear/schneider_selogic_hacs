@@ -2,22 +2,41 @@
 from __future__ import annotations
 
 import logging
-
+from collections.abc import Mapping
+from typing import Any
 import voluptuous as vol
+
 from homeassistant import config_entries
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResult
 from homeassistant.const import CONF_HOST, CONF_PORT, CONF_SCAN_INTERVAL
+from homeassistant.config_entries import SOURCE_RECONFIGURE, ConfigFlowResult
+from homeassistant.helpers import config_validation as cv
 from pymodbus.client import AsyncModbusTcpClient
 from pymodbus.exceptions import ModbusException
 
-from .const import DOMAIN, DEFAULT_PORT, DEFAULT_SLAVE_ID, CONF_HOST, CONF_PORT, CONF_SLAVE_ID, DEFAULT_SCAN_INTERVAL
+from .const import (
+    DOMAIN,
+    DEFAULT_PORT,
+    DEFAULT_SLAVE_ID,
+    CONF_HOST,
+    CONF_PORT,
+    CONF_SLAVE_ID,
+    CONF_SENSORS,
+    DEFAULT_SCAN_INTERVAL,
+    DEFAULT_SENSORS,
+    SENSOR_OPTIONS,
+)
 
 STEP_USER_DATA_SCHEMA = vol.Schema({
     vol.Required(CONF_HOST): str,
     vol.Optional(CONF_PORT, default=DEFAULT_PORT): int,
     vol.Optional(CONF_SLAVE_ID, default=DEFAULT_SLAVE_ID): int,
-    vol.Optional(CONF_SCAN_INTERVAL, default=DEFAULT_SCAN_INTERVAL): int
+    vol.Optional(CONF_SCAN_INTERVAL, default=DEFAULT_SCAN_INTERVAL): int,
+    vol.Required(CONF_SENSORS, default=DEFAULT_SENSORS): vol.All(
+        cv.multi_select(SENSOR_OPTIONS),
+        vol.Length(min=1),
+    ),
 })
 
 _LOGGER = logging.getLogger(__name__)
@@ -39,7 +58,7 @@ async def validate_input(hass: HomeAssistant, data: dict) -> dict[str, str]:
         result = await client.read_holding_registers(
             address=49,
             count=20,
-            slave=data[CONF_SLAVE_ID]
+            device_id=data[CONF_SLAVE_ID]
         )
 
         if result.isError():
@@ -62,6 +81,16 @@ class SELogicConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
     VERSION = 1
     CONNECTION_CLASS = config_entries.CONN_CLASS_LOCAL_POLL
+    _entry: config_entries.ConfigEntry
+
+    def _get_data_schema(self, user_input: dict | None = None) -> vol.Schema:
+        """Build the form schema, pre-filling existing values during reconfigure."""
+        if self.source == SOURCE_RECONFIGURE:
+            return self.add_suggested_values_to_schema(
+                STEP_USER_DATA_SCHEMA,
+                {**self._entry.data, **(user_input or {})},
+            )
+        return STEP_USER_DATA_SCHEMA
 
     async def async_step_user(self, user_input: dict | None = None) -> FlowResult:
         """Handle the initial step."""
@@ -70,6 +99,12 @@ class SELogicConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         if user_input is not None:
             try:
                 info = await validate_input(self.hass, user_input)
+
+                if self.source == SOURCE_RECONFIGURE:
+                    return self.async_update_reload_and_abort(
+                        self._entry,
+                        data_updates=user_input,
+                    )
 
                 # 检查是否已配置
                 # await self.async_set_unique_id(user_input[CONF_HOST])
@@ -89,10 +124,13 @@ class SELogicConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 _LOGGER.error("Unexcepted error %s: %s", e.__class__.__name__, e)
                 errors["base"] = "unknown"
 
-            print(errors)
-
         return self.async_show_form(
             step_id="user",
-            data_schema=STEP_USER_DATA_SCHEMA,
+            data_schema=self._get_data_schema(user_input),
             errors=errors
         )
+
+    async def async_step_reconfigure(self, user_input: Mapping[str, Any] | None = None) -> ConfigFlowResult:
+        """Handle device re-configuration."""
+        self._entry = self._get_reconfigure_entry()
+        return await self.async_step_user(user_input)
